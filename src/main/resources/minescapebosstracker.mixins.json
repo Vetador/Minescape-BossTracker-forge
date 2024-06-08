@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "compatibilityLevel": "JAVA_17",
+  "package": "com.vetador.minescapebosstracker.asm.mixin",
+  "refmap": "minescapebosstracker.mixins.refmap.json",
+  "mixins": [
+    "getBossName"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
