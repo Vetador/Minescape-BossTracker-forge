@@ -16,10 +16,10 @@ public class ModToggle {
     @SubscribeEvent
     public static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
         toggleKeyBinding = new KeyMapping(
-                "key.runestack.toggle",
+                "key.bosstracker.toggle",
                 InputConstants.Type.KEYSYM,
                 GLFW.GLFW_KEY_B,
-                "category.runestack.keys"
+                "category.bosstracker.keys"
         );
         event.register(toggleKeyBinding);
     }

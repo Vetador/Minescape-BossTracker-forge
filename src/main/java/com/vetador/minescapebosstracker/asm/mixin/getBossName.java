@@ -4,6 +4,7 @@ package com.vetador.minescapebosstracker.asm.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.vetador.minescapebosstracker.EventHandler.BossBarHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.network.chat.Component;
@@ -24,6 +25,7 @@ public abstract class getBossName<T extends Entity> {
     @Inject(method = "renderNameTag", at = @At("HEAD"))
     public void renderNameTag(T pEntity, Component pDisplayName, PoseStack pPoseStack, MultiBufferSource pBuffer, int pPackedLight, CallbackInfo ci) {
         if (pEntity instanceof LivingEntity && featuresEnabled) {
+            Entity entity = pEntity;
             Minecraft mc = Minecraft.getInstance();
             String entityName = pDisplayName.getString();
             String normalizedName = normalizeName(entityName);
@@ -43,7 +45,7 @@ public abstract class getBossName<T extends Entity> {
                 }
                 else
                 {
-                    bossEntities.replace(pEntity, new BossBarHandler.BossInfo(normalizedName, 0, 0, false));
+                    bossEntities.remove(pEntity);
                 }
             }
         }

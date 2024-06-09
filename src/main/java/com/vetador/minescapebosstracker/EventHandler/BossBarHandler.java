@@ -22,8 +22,9 @@ import java.util.regex.Pattern;
 import static com.mojang.text2speech.Narrator.LOGGER;
 import static com.vetador.minescapebosstracker.BossTracker.MODID;
 import static com.vetador.minescapebosstracker.BossTracker.featuresEnabled;
+import static net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus.FORGE;
 
-@Mod.EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = MODID, value = Dist.CLIENT, bus = FORGE)
 public class BossBarHandler {
 
 
@@ -81,12 +82,28 @@ public class BossBarHandler {
 
     @SubscribeEvent
     public static void onAttackEntity(AttackEntityEvent event) {
-        Entity entity = event.getEntity();
-        if (bossEntities.containsKey(entity) && featuresEnabled) {
-            String normalizedName = bossEntities.get(entity).bossName;
-            float currentHealth = bossEntities.get(entity).currentHealth;
-            float maxHealth = bossEntities.get(entity).maxHealth;
-            bossEntities.replace(entity, new BossBarHandler.BossInfo(normalizedName, currentHealth, maxHealth, true));
+        Entity entity = event.getTarget();
+        int X = entity.getBlockX();
+        int Z = entity.getBlockZ();
+        Entity boss = null;
+        if (!bossEntities.isEmpty() && featuresEnabled) {
+            for (Map.Entry<Entity, BossInfo> entry : bossEntities.entrySet()) {
+                Entity potentialBoss = entry.getKey();
+                BossInfo bossInfo = entry.getValue();
+                String bossName = bossInfo.bossName;
+                String potentialBossName = normalizeName(potentialBoss.getName().getString());
+                if (potentialBoss.getBlockX() == X && potentialBoss.getBlockZ() == Z && potentialBossName.equals(bossName)) {
+                    boss = potentialBoss;
+                    break;
+                }
+            }
+        }
+        if (boss != null && bossEntities.containsKey(boss)) {
+            BossInfo bossInfo = bossEntities.get(boss);
+            String normalizedName = bossInfo.bossName;
+            float currentHealth = bossInfo.currentHealth;
+            float maxHealth = bossInfo.maxHealth;
+            bossEntities.replace(boss, new BossBarHandler.BossInfo(normalizedName, currentHealth, maxHealth, true));
         }
     }
 
