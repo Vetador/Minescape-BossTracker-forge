@@ -1,23 +1,17 @@
 package com.vetador.minescapebosstracker.EventHandler;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.vetador.minescapebosstracker.BossTracker;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.BossHealthOverlay;
-import net.minecraft.client.gui.screens.Overlay;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.common.world.BiomeModifier;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -32,15 +26,19 @@ import static com.vetador.minescapebosstracker.BossTracker.featuresEnabled;
 @Mod.EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
 public class BossBarHandler {
 
+
+
     public static class BossInfo {
         public String bossName;
         public float currentHealth;
         public float maxHealth;
+        public boolean inCombat;
 
-        public BossInfo(String bossName, float currentHealth, float maxHealth) {
+        public BossInfo(String bossName, float currentHealth, float maxHealth, boolean inCombat) {
             this.bossName = bossName;
             this.currentHealth = currentHealth;
             this.maxHealth = maxHealth;
+            this.inCombat = inCombat;
         }
     }
 
@@ -49,6 +47,14 @@ public class BossBarHandler {
     public static final Map<String, Integer> bossNameAndHealth = new HashMap<>();
 
     static {
+        bossNameAndHealth.put("Dungeon keeper", 11251);
+        bossNameAndHealth.put("Koschei the deathless", 101010);
+        bossNameAndHealth.put("Delrith", 1000);
+        bossNameAndHealth.put("Obor", 3000);
+        bossNameAndHealth.put("Silver Guardian", 3000);
+        bossNameAndHealth.put("Chaos Elemental", 22000);
+        bossNameAndHealth.put("Dharok the Wretched", 3500);
+        bossNameAndHealth.put("Karil the Tainted", 3500);
         bossNameAndHealth.put("Guthan the Infested", 3500);
         bossNameAndHealth.put("Ahrim the Blighted", 3500);
         bossNameAndHealth.put("Verac the Defiled", 3500);
@@ -73,7 +79,22 @@ public class BossBarHandler {
         bossNameAndHealth.put("TzTok Jad", 25000);
     }
 
+    @SubscribeEvent
+    public static void onAttackEntity(AttackEntityEvent event) {
+        Entity entity = event.getEntity();
+        if (bossEntities.containsKey(entity) && featuresEnabled) {
+            String normalizedName = bossEntities.get(entity).bossName;
+            float currentHealth = bossEntities.get(entity).currentHealth;
+            float maxHealth = bossEntities.get(entity).maxHealth;
+            bossEntities.replace(entity, new BossBarHandler.BossInfo(normalizedName, currentHealth, maxHealth, true));
+        }
+    }
 
+    @SubscribeEvent
+    public static void onEntityDeath(LivingDeathEvent event) {
+        Entity entity = event.getEntity();
+        bossEntities.remove(entity);
+    }
 
     @SubscribeEvent
     public static void onEntityLeave(EntityLeaveLevelEvent event)
@@ -97,7 +118,7 @@ public class BossBarHandler {
         if (!bossEntities.isEmpty() && featuresEnabled) {
             for (Map.Entry<Entity, BossInfo> entry : bossEntities.entrySet()) {
                 BossInfo bossInfo = entry.getValue();
-                if (bossInfo.currentHealth > 0) {
+                if (bossInfo.currentHealth > 0 && bossInfo.inCombat) {
                     onRenderCustomBossBar(event.getGuiGraphics(), bossInfo.bossName, bossInfo.currentHealth, bossInfo.maxHealth, index);
                     index++;
                 }
@@ -128,10 +149,10 @@ public class BossBarHandler {
         int j = 16 + (20 * index);
         int k = i / 2 - 91;
         int l = getBarColor(currentHealth, maxHealth);
-        drawBar(guiGraphics, bossName, k, j, l, currentHealth, maxHealth);
+        drawBar(guiGraphics, bossName, k, j, l, currentHealth, maxHealth, index);
     }
 
-    private static void drawBar(GuiGraphics guiGraphics, String bossName, int pX, int pY, int color, float currentHealth, float maxHealth) {
+    private static void drawBar(GuiGraphics guiGraphics, String bossName, int pX, int pY, int color, float currentHealth, float maxHealth, int index) {
 
         int i = (int) ((currentHealth / maxHealth) * 183.0F);
         if (i > 0) {

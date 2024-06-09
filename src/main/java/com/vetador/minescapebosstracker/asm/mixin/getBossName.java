@@ -29,14 +29,21 @@ public abstract class getBossName<T extends Entity> {
             String normalizedName = normalizeName(entityName);
             if (isBoss(normalizedName)) {
                 double distance = mc.player.distanceTo(pEntity);
-                if (distance < 100) {
+                if (distance < 60)
+                {
                     int maxHealth = bossNameAndHealth.get(normalizedName);
                     int currentHealth = (int) getBossCurrentHealth(entityName);
+
                     if (!bossEntities.containsKey(pEntity)) {
-                        bossEntities.put(pEntity, new BossBarHandler.BossInfo(normalizedName, currentHealth, maxHealth));
+                        bossEntities.put(pEntity, new BossBarHandler.BossInfo(normalizedName, currentHealth, maxHealth, false));
                     } else {
-                        bossEntities.replace(pEntity, new BossBarHandler.BossInfo(normalizedName, currentHealth, maxHealth));
+                        boolean inCombat = bossEntities.get(pEntity).inCombat;
+                        bossEntities.replace(pEntity, new BossBarHandler.BossInfo(normalizedName, currentHealth, maxHealth, inCombat));
                     }
+                }
+                else
+                {
+                    bossEntities.replace(pEntity, new BossBarHandler.BossInfo(normalizedName, 0, 0, false));
                 }
             }
         }
